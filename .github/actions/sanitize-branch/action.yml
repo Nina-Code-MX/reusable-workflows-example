@@ -1,0 +1,26 @@
+name: 'Sanitize Branch Name'
+description: 'Sanitizes a branch name to be less than 20 characters'
+
+inputs:
+  deployment_branh:
+    description: 'Specify if the branch is the main or a feature branch'
+    required: true
+
+outputs:
+  sanitized_branch_name:
+    description: 'The sanitized branch name (max 20 chars)'
+    value: ${{ steps.sanitize.output.sanitized_branch_name }}
+
+run:
+  using: "composite"
+  steps:
+    - name: Sanitize Branch Name
+      id: sanitize
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          sanitized_branch_name="pr${{ github.event.pull_request.number }}"
+        else
+          sanitized_branch_name=$(echo "${{ github.ref_name }}" | sed 's/^${{ inputs.deployment_branch }}\///' | sed -E 's#.*/([a-zA-Z]+-[0-9]+).*#\1#' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
+        fi
+        echo "sanitized_branch_name=$sanitized_branch_name" >> $GITHUB_OUTPUT
