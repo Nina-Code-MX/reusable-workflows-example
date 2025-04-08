@@ -22,15 +22,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Set test branch name
-        run: |
-          echo "TEST_BRANCH=${{ inputs.test_branch }}" >> $GITHUB_ENV
-
       - name: Sanitize branch name
         id: sanitize-branch
         uses: ./.github/actions/sanitize-branch
         with:
           deployment_branch: ${{ inputs.deployment_branch }}
+          test_branch: ${{ inputs.test_branch }}
 
       - name: Display Results
         run: |
