@@ -1,0 +1,39 @@
+name: 'Test Branch Name Sanitization'
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      test_branch:
+        description: 'Branch name to test'
+        required: true
+        type: string
+      deployment_branch:
+        description: 'Deployment brach prefix'
+        required: true
+        type: string
+        default: main
+
+jobs:
+  test-sanitize:
+    name: Test Branch Name Sanitization
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set test branch name
+        run: |
+          echo "TEST_BRANCH=${{ inputs.test_branch }}" >> $GITHUB_ENV
+
+      - name: Sanitize branch name
+        id: sanitize-branch
+        uses: ./.github/actions/sanitize-branch
+        with:
+          deployment_branch: ${{ inputs.deployment_branch }}
+
+      - name: Display Results
+        run: |
+          echo "Original branch name: ${{ inputs.test_branch }}"
+          echo "Sanitized branch name: ${{ steps.sanitize-branch.outputs.sanitized_branch_name }}"
+          echo "Length of sanitized name: ${#{{ steps.sanitized-branch.outputs.sanitized_branch_name }}}"
