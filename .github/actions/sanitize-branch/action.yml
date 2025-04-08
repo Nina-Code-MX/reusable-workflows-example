@@ -5,6 +5,9 @@ inputs:
   deployment_branh:
     description: 'Specify if the branch is the main or a feature branch'
     required: true
+  test_branch:
+    description: 'Branch name to test (for workflow_dispatch events)'
+    required: false
 
 outputs:
   sanitized_branch_name:
@@ -18,7 +21,9 @@ run:
       id: sanitize
       shell: bash
       run: |
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        if [[ "${{ inputs.test_branch }}" ]]; then
+          sanitized_branch_name=$(echo "${{ inputs.test_branch }}" | sed 's/^${{ inputs.deployment_branch }}\///' | sed -E 's#.*/([a-zA-Z]+-[0-9]+).*#\1#' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
+        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
           sanitized_branch_name="pr${{ github.event.pull_request.number }}"
         else
           sanitized_branch_name=$(echo "${{ github.ref_name }}" | sed 's/^${{ inputs.deployment_branch }}\///' | sed -E 's#.*/([a-zA-Z]+-[0-9]+).*#\1#' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
